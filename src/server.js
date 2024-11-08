@@ -15,9 +15,23 @@ const dirname = path.dirname(new URL(import.meta.url).pathname);
 
 configViewEngine(app, dirname);
 
+app.use(express.json()); // Add this line to parse JSON request bodies
+app.use(express.urlencoded({ extended: true })); // Add this line to parse URL-encoded request bodies
+
 app.use("/", WebRouters);
 app.use(`/api/${apiVersion}`, ApiRoutes);
 
-app.listen(port, hostname, () => {
+const server = app.listen(port, hostname, () => {
   console.log(`Example app listening on port ${port}`);
 });
+
+const gracefulShutdown = async () => {
+  console.log("Shutting down gracefully...");
+  await closePool();
+  server.close(() => {
+    console.log("Server closed");
+    process.exit(0);
+  });
+};
+process.on("SIGTERM", gracefulShutdown);
+process.on("SIGINT", gracefulShutdown);

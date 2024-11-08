@@ -1,5 +1,10 @@
 import express from "express";
-import { getApi, createSomethingApi } from "../controllers/apiController.js";
+import {
+  getUsersApi,
+  createUserApi,
+  getUserByIdApi,
+  deleteUserApi,
+} from "../controllers/apiController.js";
 
 const router = express.Router();
 
@@ -8,8 +13,12 @@ router.use((req, res, next) => {
   next();
 });
 
-router.get("/", getApi);
+router.get("/users", getUsersApi);
 
-router.get("/create", createSomethingApi);
+router.get("/users/:id", getUserByIdApi);
+
+router.post("/users", createUserApi);
+
+router.delete("/users/:id", deleteUserApi);
 
 export default router;
