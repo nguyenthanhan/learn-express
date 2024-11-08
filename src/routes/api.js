@@ -1,22 +1,15 @@
 import express from "express";
+import { getApi, createSomethingApi } from "../controllers/apiController.js";
 
 const router = express.Router();
 
 router.use((req, res, next) => {
-  console.log("", new Date());
+  console.log("Api Router", new Date());
   next();
 });
 
-router.get("/", (req, res) => {
-  res.json({
-    message: "Hello World",
-  });
-});
+router.get("/", getApi);
 
-router.get("/create", (req, res) => {
-  res.json({
-    message: "create World",
-  });
-});
+router.get("/create", createSomethingApi);
 
 export default router;

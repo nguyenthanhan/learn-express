@@ -1,20 +1,15 @@
 import express from "express";
+import { getHomepage, getAbout } from "../controllers/homeController.js";
 
 const router = express.Router();
 
 router.use((req, res, next) => {
-  console.log("", new Date());
+  console.log("Web router", new Date());
   next();
 });
 
-router.get("/", (req, res) => {
-  res.render("sample.ejs");
-});
+router.get("/", getHomepage);
 
-router.get("/about", (req, res) => {
-  res.json({
-    message: "Hello World",
-  });
-});
+router.get("/about", getAbout);
 
 export default router;
