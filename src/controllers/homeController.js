@@ -1,5 +1,5 @@
 const getHomepage = (req, res) => {
-  res.render("sample.ejs");
+  res.render("home.ejs");
 };
 
 const getAbout = (req, res) => {
