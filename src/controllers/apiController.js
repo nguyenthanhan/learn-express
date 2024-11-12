@@ -1,17 +1,23 @@
 import { pool } from "../config/database.js";
+import {
+  getAllUsers,
+  getUserById,
+  createUser,
+  editUser,
+  deleteUser,
+} from "../services/CRUDService.js";
 
 const getUsersApi = async (req, res) => {
   try {
-    const [results, fields] = await pool.query("SELECT * FROM Users");
-    console.log(results);
+    const allUsers = await getAllUsers();
 
     res.json({
-      results: results,
+      results: allUsers,
     });
   } catch (err) {
     console.log(err);
     res.json({
-      message: err,
+      message: "An error occurred",
     });
   }
 };
@@ -24,17 +30,14 @@ const getUserByIdApi = async (req, res) => {
   }
 
   try {
-    const [results, fields] = await pool.query(
-      "SELECT * FROM Users WHERE id = ?",
-      [id]
-    );
+    const user = await getUserById(id);
 
-    if (!results.length) {
+    if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
     res.json({
-      results: results[0],
+      results: user,
     });
   } catch (err) {
     console.log(err);
@@ -53,10 +56,7 @@ const createUserApi = async (req, res) => {
   }
 
   try {
-    const [result] = await pool.query(
-      "INSERT INTO Users (email, name, city) VALUES (?, ?, ?)",
-      [email, name, city]
-    );
+    const result = await createUser({ name, email, city });
 
     if (!result?.insertId) {
       res.status(400).json({ error: "Failed to create user" });
@@ -71,6 +71,32 @@ const createUserApi = async (req, res) => {
   }
 };
 
+const editUserApi = async (req, res) => {
+  const { id } = req.params;
+  const { name, email, city } = req.body ?? {};
+
+  if (!id) {
+    return res.status(400).json({ error: "ID is required" });
+  }
+
+  if (!name || !email || !city) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  try {
+    const result = await editUser({ id, name, email, city });
+
+    if (!result?.affectedRows) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({ message: "User updated successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 const deleteUserApi = async (req, res) => {
   const { id } = req.params;
 
@@ -79,7 +105,7 @@ const deleteUserApi = async (req, res) => {
   }
 
   try {
-    const [result] = await pool.query("DELETE FROM Users WHERE id = ?", [id]);
+    const result = await deleteUser(id);
 
     if (!result?.affectedRows) {
       return res.status(404).json({ error: "User not found" });
@@ -92,4 +118,10 @@ const deleteUserApi = async (req, res) => {
   }
 };
 
-export { getUsersApi, createUserApi, deleteUserApi, getUserByIdApi };
+export {
+  getUsersApi,
+  createUserApi,
+  deleteUserApi,
+  getUserByIdApi,
+  editUserApi,
+};

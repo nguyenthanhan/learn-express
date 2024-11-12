@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+  <div class="topnav">
+    <a class="active" href="/">Home</a>
+    <a href="/createUser">Create User</a>
+    <a href="/about">About</a>
+  </div>
+
+  <div class="container">
+
+    <form class="styled-form" action="/createUser/" method="post">
+      <fieldset>
+        <legend>Add new user:</legend>
+
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name"><br><br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email"><br><br>
+        <label for="city">City:</label>
+        <input type="text" id="city" name="city"><br><br>
+        <div class="button-container">
+          <button type="submit">Create</button>
+        </div>
+      </fieldset>
+    </form>
+  </div>
+
+</body>
+
+</html>

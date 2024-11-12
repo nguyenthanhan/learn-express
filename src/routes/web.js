@@ -1,5 +1,13 @@
 import express from "express";
-import { getHomepage, getAbout } from "../controllers/homeController.js";
+import {
+  getHomepage,
+  getAbout,
+  getCreateUserPage,
+  getEditUserPage,
+  createUserAction,
+  editUserAction,
+  deleteUserAction,
+} from "../controllers/homeController.js";
 
 const router = express.Router();
 
@@ -9,6 +17,11 @@ router.use((req, res, next) => {
 });
 
 router.get("/", getHomepage);
+router.get("/createUser", getCreateUserPage);
+router.post("/createUser", createUserAction);
+router.get("/editUser/:id", getEditUserPage);
+router.post("/editUser/:id", editUserAction);
+router.post("/deleteUser/:id", deleteUserAction);
 
 router.get("/about", getAbout);
 

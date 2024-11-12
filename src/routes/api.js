@@ -4,6 +4,7 @@ import {
   createUserApi,
   getUserByIdApi,
   deleteUserApi,
+  editUserApi,
 } from "../controllers/apiController.js";
 
 const router = express.Router();
@@ -17,7 +18,9 @@ router.get("/users", getUsersApi);
 
 router.get("/users/:id", getUserByIdApi);
 
-router.post("/users", createUserApi);
+router.post("/users/", createUserApi);
+
+router.put("/users/:id", editUserApi);
 
 router.delete("/users/:id", deleteUserApi);
 
