@@ -1,10 +1,12 @@
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
+
 <body>
   <div class="topnav">
     <a class="active" href="#home">Home</a>
@@ -12,5 +14,24 @@
     <a href="#contact">Contact</a>
     <a href="#about">About</a>
   </div>
+
+  <div class="container">
+
+    <form class="styled-form" action="/action_page.php">
+      <fieldset>
+        <legend>Personalia:</legend>
+
+        <label for="name">Name:</label>
+        <input type="text" id="lname" name="lname"><br><br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email"><br><br>
+        <label for="city">City:</label>
+        <input type="text" id="city" name="city"><br><br>
+        <button type="submit">Submit</button>
+      </fieldset>
+    </form>
+  </div>
+
 </body>
+
 </html>
