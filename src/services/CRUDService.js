@@ -5,7 +5,7 @@ import user from "../models/user.js";
 const getAllUsers = async () => {
   try {
     if (mongoIsConnected) {
-      let results = await user.find().exec();
+      let results = await user.find();
       return results;
     }
 
@@ -20,7 +20,7 @@ const getAllUsers = async () => {
 const getUserById = async (id) => {
   try {
     if (mongoIsConnected) {
-      let result = await user.findById(id).exec();
+      let result = await user.findById(id);
       return result;
     }
 
@@ -43,7 +43,7 @@ const getUserById = async (id) => {
 const createUser = async ({ name, email, city }) => {
   try {
     if (mongoIsConnected) {
-      let result = await user.create({ name, email, city }).exec();
+      let result = await user.create({ name, email, city });
       result.insertId = result._id;
       return result;
     }
@@ -67,10 +67,7 @@ const createUser = async ({ name, email, city }) => {
 const editUser = async ({ id, name, email, city }) => {
   try {
     if (mongoIsConnected) {
-      let result = await user
-        .findByIdAndUpdate(id, { name, email, city })
-        .exec();
-
+      let result = await user.findByIdAndUpdate(id, { name, email, city });
       result.affectedRows = 1;
       return result;
     }
@@ -94,7 +91,7 @@ const editUser = async ({ id, name, email, city }) => {
 const deleteUser = async (id) => {
   try {
     if (mongoIsConnected) {
-      let result = await user.findByIdAndDelete(id).exec();
+      let result = await user.findByIdAndDelete(id);
       result.affectedRows = 1;
       return result;
     }
