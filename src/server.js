@@ -4,34 +4,47 @@ import path from "path";
 import env from "./config/env.js";
 import WebRouters from "./routes/web.js";
 import ApiRoutes from "./routes/api.js";
+import createMongoConn from "./config/mongo.js";
+import { pool } from "./config/mysql.js";
 
-const app = express();
+const startServer = async () => {
+  try {
+    const mongoose = await createMongoConn();
 
-const port = env.PORT;
-const hostname = env.HOSTNAME;
-const apiVersion = env.API_VERSION;
+    const app = express();
 
-const dirname = path.dirname(new URL(import.meta.url).pathname);
+    const port = env.PORT;
+    const hostname = env.HOSTNAME;
+    const apiVersion = env.API_VERSION;
 
-configViewEngine(app, dirname);
+    const dirname = path.dirname(new URL(import.meta.url).pathname);
+    configViewEngine(app, dirname);
 
-app.use(express.json()); // Add this line to parse JSON request bodies
-app.use(express.urlencoded({ extended: true })); // Add this line to parse URL-encoded request bodies
+    app.use(express.json()); // Add this line to parse JSON request bodies
+    app.use(express.urlencoded({ extended: true })); // Add this line to parse URL-encoded request bodies
 
-app.use("/", WebRouters);
-app.use(`/api/${apiVersion}`, ApiRoutes);
+    app.use("/", WebRouters);
+    app.use(`/api/${apiVersion}`, ApiRoutes);
 
-const server = app.listen(port, hostname, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+    const server = app.listen(port, hostname, () => {
+      console.log(`Example app listening on port ${port}`);
+    });
 
-const gracefulShutdown = async () => {
-  console.log("Shutting down gracefully...");
-  await closePool();
-  server.close(() => {
-    console.log("Server closed");
-    process.exit(0);
-  });
+    const gracefulShutdown = async () => {
+      console.log("Shutting down gracefully...");
+      if (pool.close) {
+        await pool.close();
+      }
+      server.close(() => {
+        console.log("Server closed");
+        process.exit(0);
+      });
+    };
+    process.on("SIGTERM", gracefulShutdown);
+    process.on("SIGINT", gracefulShutdown);
+  } catch (error) {
+    console.log("Start Server Fail", error);
+  }
 };
-process.on("SIGTERM", gracefulShutdown);
-process.on("SIGINT", gracefulShutdown);
+
+startServer();
