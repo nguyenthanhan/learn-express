@@ -6,6 +6,7 @@ import WebRouters from "./routes/web.js";
 import ApiRoutes from "./routes/api.js";
 import createMongoConn from "./config/mongo.js";
 import { pool } from "./config/mysql.js";
+import fileUpload from "express-fileupload";
 
 const startServer = async () => {
   try {
@@ -19,6 +20,15 @@ const startServer = async () => {
 
     const dirname = path.dirname(new URL(import.meta.url).pathname);
     configViewEngine(app, dirname);
+
+    app.use(
+      fileUpload({
+        limits: { fileSize: 50 * 1024 * 1024 },
+        useTempFiles: true,
+        createParentPath: true,
+        tempFileDir: "/tmp/",
+      })
+    );
 
     app.use(express.json()); // Add this line to parse JSON request bodies
     app.use(express.urlencoded({ extended: true })); // Add this line to parse URL-encoded request bodies
