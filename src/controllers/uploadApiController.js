@@ -1,6 +1,53 @@
 import fs from "fs";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
+import CloudinaryService from "../services/CloudinaryService.js";
+
+const allowedExtensions = [".jpg", ".jpeg", ".png"];
+
+const validateFileExtension = (file) => {
+  const fileExtension = path.extname(file.name).toLowerCase();
+  if (!allowedExtensions.includes(fileExtension)) {
+    throw new Error(
+      `Invalid file type: ${fileExtension}. Only .jpg, .jpeg, and .png files are allowed.`
+    );
+  }
+  return fileExtension;
+};
+
+const moveFileToUploadDir = async (file, uploadDir) => {
+  const fileName = uuidv4();
+  const newFileName = `${fileName}${path.extname(file.name).toLowerCase()}`;
+  const uploadPath = path.join(uploadDir, newFileName);
+  await file.mv(uploadPath);
+
+  return {
+    name: newFileName,
+    mimetype: file.mimetype,
+    size: file.size,
+    md5: file.md5,
+    uploadPath,
+  };
+};
+
+const uploadFilesToCloudinary = async (uploadedFiles, dateFolderName) => {
+  const uploadPromises = uploadedFiles.map(async (file) => {
+    const result = await CloudinaryService.upload(file.uploadPath, {
+      folder: path.join("images", dateFolderName),
+      transformation: [{ quality: "auto", fetch_format: "auto" }], // Optimize images
+    });
+    const { api_key, ...rest } = result;
+    return rest;
+  });
+  return await Promise.all(uploadPromises);
+};
+
+const removeUploadDir = (uploadDir) => {
+  fs.rm(uploadDir, { recursive: true, force: true }, (err) => {
+    if (err) throw err;
+    console.log(`${uploadDir} is deleted!`);
+  });
+};
 
 const uploadFileApi = async (req, res) => {
   try {
@@ -14,48 +61,35 @@ const uploadFileApi = async (req, res) => {
     const files = Array.isArray(req.files.images)
       ? req.files.images
       : [req.files.images];
-    const uploadedFiles = [];
-    const allowedExtensions = [".jpg", ".jpeg", ".png"];
 
     // Get today's date and create a folder name
-    const today = new Date();
-    const folderName = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, "0")}-${today.getDate().toString().padStart(2, "0")}`;
-    const uploadDir = path.join(process.cwd(), "uploads", folderName);
+    const uploadDir = path.join(process.cwd(), "uploads");
 
     // Create the directory if it doesn't exist
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    for (const file of files) {
-      const fileExtension = path.extname(file.name);
+    const getFilesPromises = files.map(async (file) => {
+      const fileExtension = validateFileExtension(file);
+      return moveFileToUploadDir(file, uploadDir);
+    });
+    const uploadedFiles = await Promise.all(getFilesPromises);
 
-      if (!allowedExtensions.includes(fileExtension)) {
-        return res.status(400).send({
-          status: false,
-          message: `Invalid file type: ${fileExtension}. Only .jpg, .jpeg, and .png files are allowed.`,
-        });
-      }
-
-      const fileName = uuidv4();
-      const newFileName = `${fileName}${fileExtension}`;
-      const uploadPath = path.join(uploadDir, newFileName);
-
-      await file.mv(uploadPath);
-
-      uploadedFiles.push({
-        name: newFileName,
-        mimetype: file.mimetype,
-        size: file.size,
-        md5: file.md5,
-      });
-    }
+    const today = new Date();
+    const dateFolderName = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, "0")}-${today.getDate().toString().padStart(2, "0")}`;
+    const uploadedFilesPromises = await uploadFilesToCloudinary(
+      uploadedFiles,
+      dateFolderName
+    );
 
     res.send({
       status: true,
       message: "Files are uploaded",
-      data: uploadedFiles,
+      data: uploadedFilesPromises,
     });
+
+    removeUploadDir(uploadDir);
   } catch (err) {
     console.log(err);
     res.status(500).send(err);
