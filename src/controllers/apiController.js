@@ -4,7 +4,7 @@ import {
   createUser,
   editUser,
   deleteUser,
-} from "../services/CRUDService.js";
+} from "../services/UserService.js";
 
 const getUsersApi = async (req, res) => {
   try {

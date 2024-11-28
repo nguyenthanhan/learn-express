@@ -4,7 +4,7 @@ import {
   deleteUser,
   getAllUsers,
   getUserById,
-} from "../services/CRUDService.js";
+} from "../services/UserService.js";
 
 const getHomepage = async (req, res) => {
   try {
