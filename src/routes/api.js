@@ -6,7 +6,10 @@ import {
   deleteUserApi,
   editUserApi,
 } from "../controllers/apiController.js";
-import { uploadFileApi } from "../controllers/uploadApiController.js";
+import {
+  uploadFileApi,
+  getImageInfoApi,
+} from "../controllers/uploadApiController.js";
 
 const router = express.Router();
 
@@ -24,5 +27,6 @@ router.delete("/users/:id", deleteUserApi);
 
 // MARK: - File Upload
 router.post("/upload", uploadFileApi);
+router.get("/upload/info/", getImageInfoApi);
 
 export default router;

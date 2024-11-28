@@ -31,6 +31,18 @@ class CloudinaryService {
       throw new Error(`Cloudinary upload failed: ${error.message}`);
     }
   }
+
+  async getInfo(publicId) {
+    try {
+      const options = {
+        exif: false,
+      };
+      const result = await cloudinary.api.resource(publicId, options);
+      return result;
+    } catch (error) {
+      throw new Error(`Cloudinary getInfo failed: ${error}`);
+    }
+  }
 }
 
 const instance = new CloudinaryService();

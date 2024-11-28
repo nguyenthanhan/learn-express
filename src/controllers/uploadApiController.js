@@ -96,4 +96,16 @@ const uploadFileApi = async (req, res) => {
   }
 };
 
-export { uploadFileApi };
+const getImageInfoApi = async (req, res) => {
+  try {
+    const { publicId } = req.query;
+    const result = await CloudinaryService.getInfo(publicId);
+    res.send(result);
+  } catch (err) {
+    console.log("error", JSON.stringify(err, null, 2));
+
+    res.status(500).send(err);
+  }
+};
+
+export { uploadFileApi, getImageInfoApi };
