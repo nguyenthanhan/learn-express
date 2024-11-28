@@ -40,10 +40,10 @@ const getUserById = async (id) => {
   }
 };
 
-const createUser = async ({ name, email, city }) => {
+const createUser = async ({ name, email, city, role }) => {
   try {
     if (mongoIsConnected) {
-      let result = await user.create({ name, email, city });
+      let result = await user.create({ name, email, city, role });
       result.insertId = result._id;
       return result;
     }

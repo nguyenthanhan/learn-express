@@ -48,14 +48,14 @@ const getUserByIdApi = async (req, res) => {
 
 const createUserApi = async (req, res) => {
   console.log("req", req.body);
-  const { name, email, city } = req.body ?? {};
+  const { name, email, city, role } = req.body ?? {};
 
-  if (!name || !email || !city) {
+  if (!name || !email || !city || !role) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
-    const result = await createUser({ name, email, city });
+    const result = await createUser({ name, email, city, role });
 
     if (!result?.insertId) {
       res.status(400).json({ error: "Failed to create user" });
@@ -63,7 +63,11 @@ const createUserApi = async (req, res) => {
 
     res
       .status(201)
-      .json({ message: "User created successfully", id: result.insertId });
+      .json({
+        message: "User created successfully",
+        id: result.insertId,
+        data: result,
+      });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
