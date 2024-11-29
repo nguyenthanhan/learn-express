@@ -1,5 +1,6 @@
 {
   "name": "learn-express",
+  "version": "1.0.0",
   "packageManager": "yarn@3.8.6",
   "scripts": {
     "start": "nodemon ./src/server.js"

@@ -4,9 +4,10 @@ import path from "path";
 import env from "./config/env.js";
 import WebRouters from "./routes/web.js";
 import ApiRoutes from "./routes/api.js";
-import createMongoConn from "./config/mongo.js";
+import createMongoConn, { mongoIsConnected } from "./config/mongo.js";
 import { pool } from "./config/mysql.js";
 import fileUpload from "express-fileupload";
+import fs from "fs";
 
 const startServer = async () => {
   try {
@@ -17,6 +18,17 @@ const startServer = async () => {
     const port = env.PORT;
     const hostname = env.HOSTNAME;
     const apiVersion = env.API_VERSION;
+
+    // Read and parse package.json
+    const packageJsonPath = path.join(process.cwd(), "package.json");
+    let packageJson;
+    try {
+      packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+      console.log("App Version:", packageJson.version);
+    } catch (error) {
+      console.error("Failed to read or parse package.json", error);
+      process.exit(1);
+    }
 
     const dirname = path.dirname(new URL(import.meta.url).pathname);
     configViewEngine(app, dirname);
@@ -37,7 +49,7 @@ const startServer = async () => {
     app.use(`/api/${apiVersion}`, ApiRoutes);
 
     const server = app.listen(port, hostname, () => {
-      console.log(`Example app listening on port ${port}`);
+      console.log(`${packageJson.name} app listening on port ${port}`);
     });
 
     const gracefulShutdown = async () => {
@@ -45,6 +57,10 @@ const startServer = async () => {
       if (pool.close) {
         await pool.close();
       }
+      if (mongoIsConnected()) {
+        await mongoose.connection.close();
+      }
+
       server.close(() => {
         console.log("Server closed");
         process.exit(0);

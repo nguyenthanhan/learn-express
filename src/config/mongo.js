@@ -9,6 +9,10 @@ const createMongoConn = async () => {
       connectTimeoutMS: 10000,
       dbName: env.MONGODB_DB,
     });
+    await mongoose.connection.db.admin().command({ ping: 1 });
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
     console.log("MongoDB readyState: ", mongoose.connection.readyState);
     return mongoose;
   } catch (error) {
@@ -16,7 +20,7 @@ const createMongoConn = async () => {
   }
 };
 
-export const mongoIsConnected = async () => {
+export const mongoIsConnected = () => {
   return mongoose.connection.readyState === 1;
 };
 
