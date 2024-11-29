@@ -4,20 +4,18 @@ import {
   createUser,
   editUser,
   deleteUser,
+  restoreUser,
+  getDeletedUsers,
 } from "../services/UserService.js";
 
 const getUsersApi = async (req, res) => {
   try {
     const allUsers = await getAllUsers();
 
-    res.json({
-      results: allUsers,
-    });
+    res.status(200).json({ results: allUsers });
   } catch (err) {
     console.log(err);
-    res.json({
-      message: "An error occurred",
-    });
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -35,19 +33,14 @@ const getUserByIdApi = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.json({
-      results: user,
-    });
+    res.status(200).json({ results: user });
   } catch (err) {
     console.log(err);
-    res.json({
-      message: err,
-    });
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
 const createUserApi = async (req, res) => {
-  console.log("req", req.body);
   const { name, email, city, role } = req.body ?? {};
 
   if (!name || !email || !city || !role) {
@@ -61,13 +54,11 @@ const createUserApi = async (req, res) => {
       res.status(400).json({ error: "Failed to create user" });
     }
 
-    res
-      .status(201)
-      .json({
-        message: "User created successfully",
-        id: result.insertId,
-        data: result,
-      });
+    res.status(201).json({
+      message: "User created successfully",
+      id: result.insertId,
+      data: result,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
@@ -76,24 +67,24 @@ const createUserApi = async (req, res) => {
 
 const editUserApi = async (req, res) => {
   const { id } = req.params;
-  const { name, email, city } = req.body ?? {};
+  const { name, email, city, role } = req.body ?? {};
 
   if (!id) {
     return res.status(400).json({ error: "ID is required" });
   }
 
-  if (!name || !email || !city) {
+  if (!name || !email || !city || !role) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
-    const result = await editUser({ id, name, email, city });
+    const result = await editUser({ id, name, email, city, role });
 
     if (!result?.affectedRows) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.json({ message: "User updated successfully" });
+    res.status(200).json({ message: "User updated successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
@@ -114,7 +105,43 @@ const deleteUserApi = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.json({ message: "User deleted successfully" });
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const getDeletedUsersApi = async (req, res) => {
+  try {
+    const deletedUsers = await getDeletedUsers();
+
+    res.status(200).json({ results: deletedUsers });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const restoreUserApi = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: "ID is required" });
+  }
+
+  try {
+    const result = await restoreUser(id);
+
+    if (result === null) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    if (!result?.affectedRows) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json({ message: "User restored successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
@@ -127,4 +154,6 @@ export {
   deleteUserApi,
   getUserByIdApi,
   editUserApi,
+  restoreUserApi,
+  getDeletedUsersApi,
 };

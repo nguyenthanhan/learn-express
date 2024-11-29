@@ -5,7 +5,7 @@ import user from "../models/user.js";
 const getAllUsers = async () => {
   try {
     if (mongoIsConnected) {
-      let results = await user.find();
+      let results = await user.find({ deleted: false });
       return results;
     }
 
@@ -20,7 +20,7 @@ const getAllUsers = async () => {
 const getUserById = async (id) => {
   try {
     if (mongoIsConnected) {
-      let result = await user.findById(id);
+      let result = await user.findOne({ _id: id, deleted: false });
       return result;
     }
 
@@ -64,10 +64,24 @@ const createUser = async ({ name, email, city, role }) => {
   }
 };
 
-const editUser = async ({ id, name, email, city }) => {
+const editUser = async ({ id, name, email, city, role }) => {
   try {
     if (mongoIsConnected) {
-      let result = await user.findByIdAndUpdate(id, { name, email, city });
+      let result = await user.findOneAndUpdate(
+        { _id: id, deleted: false },
+        {
+          name,
+          email,
+          city,
+          role,
+        },
+        { new: true }
+      );
+
+      if (!result) {
+        return null;
+      }
+
       result.affectedRows = 1;
       return result;
     }
@@ -91,12 +105,20 @@ const editUser = async ({ id, name, email, city }) => {
 const deleteUser = async (id) => {
   try {
     if (mongoIsConnected) {
-      let result = await user.findByIdAndDelete(id);
-      result.affectedRows = 1;
-      return result;
+      const foundUser = await user.findById(id);
+
+      if (!foundUser) {
+        return null;
+      }
+      await foundUser.softDelete({ deleteBy: 1 });
+      foundUser.affectedRows = 1;
+      return foundUser;
     }
 
-    const [result] = await pool.query("DELETE FROM Users WHERE id = ?", [id]);
+    const [result] = await pool.query(
+      "UPDATE Users SET deleted = ?, deletedAt = ? WHERE id = ?",
+      [true, new Date(), id]
+    );
 
     if (!result?.affectedRows) {
       return null;
@@ -109,4 +131,57 @@ const deleteUser = async (id) => {
   }
 };
 
-export { getAllUsers, getUserById, createUser, editUser, deleteUser };
+const getDeletedUsers = async () => {
+  try {
+    if (mongoIsConnected) {
+      let results = await user.find({ deleted: true });
+      return results;
+    }
+
+    const [results, fields] = await pool.query(
+      "SELECT * FROM Users WHERE deleted = true"
+    );
+    return results;
+  } catch (err) {
+    console.log(err);
+    return [];
+  }
+};
+
+const restoreUser = async (id) => {
+  try {
+    if (mongoIsConnected) {
+      const foundUser = await user.findById(id);
+      if (!user) {
+        return null;
+      }
+      await foundUser.restore();
+      foundUser.affectedRows = 1;
+      return foundUser;
+    }
+
+    const [result] = await pool.query(
+      "UPDATE Users SET deleted = false WHERE id = ?",
+      [id]
+    );
+
+    if (!result?.affectedRows) {
+      return null;
+    }
+
+    return result;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+};
+
+export {
+  getAllUsers,
+  getUserById,
+  createUser,
+  editUser,
+  deleteUser,
+  restoreUser,
+  getDeletedUsers,
+};

@@ -5,6 +5,8 @@ import {
   getUserByIdApi,
   deleteUserApi,
   editUserApi,
+  getDeletedUsersApi,
+  restoreUserApi,
 } from "../controllers/apiController.js";
 import {
   uploadFileApi,
@@ -24,6 +26,8 @@ router.get("/users/:id", getUserByIdApi);
 router.post("/users/", createUserApi);
 router.put("/users/:id", editUserApi);
 router.delete("/users/:id", deleteUserApi);
+router.get("/users/deleted", getDeletedUsersApi);
+router.patch("/users/:id", restoreUserApi);
 
 // MARK: - File Upload
 router.post("/upload", uploadFileApi);

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+
 const { Schema } = mongoose;
 
 const userSchema = new Schema(
@@ -7,13 +8,25 @@ const userSchema = new Schema(
     email: String,
     city: String,
     role: { type: String, default: "user" },
+    deleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
+    deletedBy: { type: String, default: null },
   },
   { timestamps: true }
 );
 
-userSchema.methods.softDelete = function () {
+// Soft delete method
+userSchema.methods.softDelete = function ({ deleteBy = null }) {
+  this.deleted = true;
+  this.deletedBy = deleteBy;
   this.deletedAt = new Date();
+  return this.save();
+};
+
+userSchema.methods.restore = function () {
+  this.deleted = false;
+  this.deletedBy = null;
+  this.deletedAt = null;
   return this.save();
 };
 
