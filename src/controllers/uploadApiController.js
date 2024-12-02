@@ -74,12 +74,12 @@ const uploadFileApi = async (req, res) => {
       const fileExtension = validateFileExtension(file);
       return moveFileToUploadDir(file, uploadDir);
     });
-    const uploadedFiles = await Promise.all(getFilesPromises);
+    const processedFiles = await Promise.all(getFilesPromises);
 
     const today = new Date();
     const dateFolderName = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, "0")}-${today.getDate().toString().padStart(2, "0")}`;
     const uploadedFilesPromises = await uploadFilesToCloudinary(
-      uploadedFiles,
+      processedFiles,
       dateFolderName
     );
 
