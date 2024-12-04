@@ -2,18 +2,47 @@ import { pool } from "../config/mysql.js";
 import { mongoIsConnected } from "../config/mongo.js";
 import user from "../models/user.js";
 
-const getAllUsers = async () => {
+const getAllUsers = async ({ page = 1, limit = 20, keyword = "" } = {}) => {
   try {
+    const skip = (page - 1) * limit;
+    const searchQuery = { deleted: false };
+    if (keyword) {
+      searchQuery["$or"] = [
+        { name: { $regex: keyword, $options: "i" } },
+        { email: { $regex: keyword, $options: "i" } },
+        { city: { $regex: keyword, $options: "i" } },
+      ];
+    }
+    let totalCount;
+    let results = [];
     if (mongoIsConnected) {
-      let results = await user.find({ deleted: false });
-      return results;
+      totalCount = await user.countDocuments(searchQuery);
+      results = await user.find(searchQuery).skip(skip).limit(limit);
+    } else {
+      const [countResults] = await pool.query(
+        "SELECT COUNT(*) as count FROM Users WHERE name LIKE ? OR email LIKE ?",
+        [`%${keyword}%`, `%${keyword}%`]
+      );
+      totalCount = countResults[0].count;
+
+      [results] = await pool.query(
+        "SELECT * FROM Users WHERE name LIKE ? OR email LIKE ? LIMIT ? OFFSET ?",
+        [`%${keyword}%`, `%${keyword}%`, limit, skip]
+      );
     }
 
-    const [results, fields] = await pool.query("SELECT * FROM Users");
-    return results;
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return {
+      page,
+      size: limit,
+      totalCount,
+      totalPages,
+      data: results,
+    };
   } catch (err) {
     console.log(err);
-    return [];
+    throw err;
   }
 };
 

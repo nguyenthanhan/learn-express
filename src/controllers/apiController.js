@@ -10,9 +10,14 @@ import {
 
 const getUsersApi = async (req, res) => {
   try {
-    const allUsers = await getAllUsers();
+    const payloads = {
+      page: Number(req.query.page) || 1,
+      limit: Number(req.query.limit) || 20,
+      keyword: req.query.keyword || "",
+    };
+    const results = await getAllUsers(payloads);
 
-    res.status(200).json({ results: allUsers });
+    res.status(200).json(results);
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal server error" });
@@ -41,7 +46,7 @@ const getUserByIdApi = async (req, res) => {
 };
 
 const createUserApi = async (req, res) => {
-  const { name, email, city, role } = req.body ?? {};
+  const { name, email, city, role } = req.body || {};
 
   if (!name || !email || !city || !role) {
     return res.status(400).json({ error: "All fields are required" });
@@ -67,7 +72,7 @@ const createUserApi = async (req, res) => {
 
 const editUserApi = async (req, res) => {
   const { id } = req.params;
-  const { name, email, city, role } = req.body ?? {};
+  const { name, email, city, role } = req.body || {};
 
   if (!id) {
     return res.status(400).json({ error: "ID is required" });

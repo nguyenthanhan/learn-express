@@ -8,8 +8,8 @@ import {
 
 const getHomepage = async (req, res) => {
   try {
-    const allUsers = await getAllUsers();
-    res.render("home.ejs", { users: allUsers });
+    const result = await getAllUsers();
+    res.render("home.ejs", { users: result.data });
   } catch (error) {
     console.log(error);
     res.send("An error occurred");
@@ -21,7 +21,7 @@ const getCreateUserPage = (req, res) => {
 };
 
 const createUserAction = async (req, res) => {
-  const { name, email, city } = req.body ?? {};
+  const { name, email, city } = req.body || {};
 
   if (!name || !email || !city) {
     return res.status(400).json({ error: "All fields are required" });
