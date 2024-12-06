@@ -2,7 +2,7 @@ export const responseFormatter = ({
   success,
   message,
   data,
-  rows,
+  meta,
   errorCode,
   errorMessage,
 }) => {
@@ -15,17 +15,17 @@ export const responseFormatter = ({
           message: errorMessage,
         }
       : undefined,
-    rows,
-    data: data || null,
+    meta,
+    results: data || null,
   };
 };
 
-export const returnResponse = (data, rows, message) => {
+export const returnResponse = (data, meta, message) => {
   return responseFormatter({
     success: true,
     message,
     data,
-    rows,
+    meta,
   });
 };
 

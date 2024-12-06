@@ -8,6 +8,7 @@ import createMongoConn, { mongoIsConnected } from "./config/mongo.js";
 import { pool } from "./config/mysql.js";
 import fileUpload from "express-fileupload";
 import fs from "fs";
+import cors from "cors";
 
 const startServer = async () => {
   try {
@@ -42,6 +43,7 @@ const startServer = async () => {
       })
     );
 
+    app.use(cors());
     app.use(express.json()); // Add this line to parse JSON request bodies
     app.use(express.urlencoded({ extended: true })); // Add this line to parse URL-encoded request bodies
 
