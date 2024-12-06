@@ -22,11 +22,11 @@ router.use((req, res, next) => {
 
 // MARK: - Users
 router.get("/users", getUsersApi);
+router.get("/users/deleted", getDeletedUsersApi);
 router.get("/users/:id", getUserByIdApi);
 router.post("/users/", createUserApi);
 router.put("/users/:id", editUserApi);
 router.delete("/users/:id", deleteUserApi);
-router.get("/users/deleted", getDeletedUsersApi);
 router.patch("/users/:id", restoreUserApi);
 
 // MARK: - File Upload

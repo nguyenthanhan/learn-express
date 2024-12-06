@@ -25,6 +25,13 @@ const env = {
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
 };
 
-console.log("Environment", JSON.stringify(env, null, 2));
+console.log(
+  "Environment",
+  JSON.stringify(
+    { NODE_ENV: env.NODE_ENV, API_VERSION: env.API_VERSION },
+    null,
+    2
+  )
+);
 
 export default env;
