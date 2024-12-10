@@ -73,7 +73,7 @@ const createUser = async ({ name, email, city, role }) => {
   try {
     if (mongoIsConnected) {
       let result = await user.create({ name, email, city, role });
-      result.insertId = result._id;
+      result.insertId = result.id;
       return result;
     }
 
