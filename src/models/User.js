@@ -2,15 +2,25 @@ import mongoose from "mongoose";
 
 const { Schema } = mongoose;
 
+const citySchema = new Schema({
+  name: String,
+  address: String,
+});
+
+citySchema.set("toJSON", {
+  virtuals: true,
+  versionKey: false,
+  transform: function (doc, ret) {
+    delete ret._id;
+  },
+});
+
 const userSchema = new Schema(
   {
     name: String,
     email: String,
-    city: {
-      type: Schema.Types.ObjectId,
-      ref: "City",
-    },
-    role: { type: String, default: "user" },
+    city: citySchema,
+    role: { type: String, default: "developer" },
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
     deletedBy: { type: String, default: null },
@@ -42,5 +52,7 @@ userSchema.set("toJSON", {
 });
 
 const User = mongoose.model("User", userSchema);
+
+export { userSchema };
 
 export default User;

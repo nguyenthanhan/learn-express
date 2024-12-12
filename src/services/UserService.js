@@ -1,6 +1,4 @@
-import mongoose from "mongoose";
 import User from "../models/User.js";
-import City from "../models/City.js";
 
 const getAllUsers = async ({ page = 1, limit = 20, keyword = "" } = {}) => {
   try {
@@ -47,16 +45,10 @@ const getUserById = async (id) => {
 
 const createUser = async ({ name, email, city, role }) => {
   try {
-    let foundCity = await City.findOne({ name: city.name });
-    if (!foundCity) {
-      foundCity = new City({ name: city.name, address: city.address });
-      await foundCity.save();
-    }
-
     let result = await User.create({
       name,
       email,
-      city: foundCity._id,
+      city,
       role,
     });
     result.insertId = result.id;
@@ -68,34 +60,19 @@ const createUser = async ({ name, email, city, role }) => {
 
 const editUser = async ({ id, name, email, city, role }) => {
   try {
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new Error("Invalid user ID");
-    }
-
-    let cityId = city;
-    if (city && typeof city === "object") {
-      let foundCity = await City.findOne({ name: city.name });
-      if (!foundCity) {
-        foundCity = new City({ name: city.name, address: city.address });
-        await foundCity.save();
-      }
-      cityId = foundCity._id;
-    }
-
     let result = await User.findOneAndUpdate(
       { _id: id, deleted: false },
       {
         name,
         email,
-        city: cityId,
+        city,
         role,
       },
       {
         new: true,
         runValidators: true,
       }
-    ).populate("city");
+    );
 
     if (!result) {
       throw new Error("User not found");
