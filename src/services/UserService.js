@@ -1,6 +1,6 @@
-import { pool } from "../config/mysql.js";
-import { mongoIsConnected } from "../config/mongo.js";
-import user from "../models/user.js";
+import mongoose from "mongoose";
+import User from "../models/User.js";
+import City from "../models/City.js";
 
 const getAllUsers = async ({ page = 1, limit = 20, keyword = "" } = {}) => {
   try {
@@ -15,21 +15,12 @@ const getAllUsers = async ({ page = 1, limit = 20, keyword = "" } = {}) => {
     }
     let totalCount;
     let results = [];
-    if (mongoIsConnected) {
-      totalCount = await user.countDocuments(searchQuery);
-      results = await user.find(searchQuery).skip(skip).limit(limit);
-    } else {
-      const [countResults] = await pool.query(
-        "SELECT COUNT(*) as count FROM Users WHERE name LIKE ? OR email LIKE ?",
-        [`%${keyword}%`, `%${keyword}%`]
-      );
-      totalCount = countResults[0].count;
 
-      [results] = await pool.query(
-        "SELECT * FROM Users WHERE name LIKE ? OR email LIKE ? LIMIT ? OFFSET ?",
-        [`%${keyword}%`, `%${keyword}%`, limit, skip]
-      );
-    }
+    totalCount = await User.countDocuments(searchQuery);
+    results = await User.find(searchQuery)
+      .skip(skip)
+      .limit(limit)
+      .populate("city");
 
     const totalPages = Math.ceil(totalCount / limit);
 
@@ -41,121 +32,93 @@ const getAllUsers = async ({ page = 1, limit = 20, keyword = "" } = {}) => {
       data: results,
     };
   } catch (err) {
-    console.log(err);
     throw err;
   }
 };
 
 const getUserById = async (id) => {
   try {
-    if (mongoIsConnected) {
-      let result = await user.findOne({ _id: id, deleted: false });
-      return result;
-    }
-
-    const [results, fields] = await pool.query(
-      "SELECT * FROM Users WHERE id = ?",
-      [id]
-    );
-
-    if (!results.length) {
-      return null;
-    }
-
-    return results[0];
+    let result = await User.findOne({ _id: id, deleted: false }).populate(city);
+    return result;
   } catch (err) {
-    console.log(err);
     throw err;
   }
 };
 
 const createUser = async ({ name, email, city, role }) => {
   try {
-    if (mongoIsConnected) {
-      let result = await user.create({ name, email, city, role });
-      result.insertId = result.id;
-      return result;
+    let foundCity = await City.findOne({ name: city.name });
+    if (!foundCity) {
+      foundCity = new City({ name: city.name, address: city.address });
+      await foundCity.save();
     }
 
-    const [result] = await pool.query(
-      "INSERT INTO Users (email, name, city) VALUES (?, ?, ?)",
-      [email, name, city]
-    );
-
-    if (!result?.insertId) {
-      return null;
-    }
-
+    let result = await User.create({
+      name,
+      email,
+      city: foundCity._id,
+      role,
+    });
+    result.insertId = result.id;
     return result;
   } catch (err) {
-    console.log(err);
     throw err;
   }
 };
 
 const editUser = async ({ id, name, email, city, role }) => {
   try {
-    if (mongoIsConnected) {
-      let result = await user.findOneAndUpdate(
-        { _id: id, deleted: false },
-        {
-          name,
-          email,
-          city,
-          role,
-        },
-        { new: true }
-      );
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error("Invalid user ID");
+    }
 
-      if (!result) {
-        return null;
+    let cityId = city;
+    if (city && typeof city === "object") {
+      let foundCity = await City.findOne({ name: city.name });
+      if (!foundCity) {
+        foundCity = new City({ name: city.name, address: city.address });
+        await foundCity.save();
       }
-
-      result.affectedRows = 1;
-      return result;
+      cityId = foundCity._id;
     }
 
-    const [result] = await pool.query(
-      "UPDATE Users SET email = ?, name = ?, city = ? WHERE id = ?",
-      [email, name, city, id]
-    );
+    let result = await User.findOneAndUpdate(
+      { _id: id, deleted: false },
+      {
+        name,
+        email,
+        city: cityId,
+        role,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).populate("city");
 
-    if (!result?.affectedRows) {
-      return null;
+    if (!result) {
+      throw new Error("User not found");
     }
 
+    result.affectedRows = 1;
     return result;
   } catch (err) {
-    console.log(err);
     throw err;
   }
 };
 
 const deleteUser = async (id) => {
   try {
-    if (mongoIsConnected) {
-      const foundUser = await user.findById(id);
+    const foundUser = await User.findById(id);
 
-      if (!foundUser) {
-        return null;
-      }
-      await foundUser.softDelete({ deleteBy: 1 });
-      foundUser.affectedRows = 1;
-      return foundUser;
-    }
-
-    const [result] = await pool.query(
-      "UPDATE Users SET deleted = ?, deletedAt = ? WHERE id = ?",
-      [true, new Date(), id]
-    );
-
-    if (!result?.affectedRows) {
+    if (!foundUser) {
       return null;
     }
-
-    return result;
+    await foundUser.softDelete({ deleteBy: 1 });
+    foundUser.affectedRows = 1;
+    return foundUser;
   } catch (err) {
-    console.log(err);
     throw err;
   }
 };
@@ -173,21 +136,9 @@ const getDeletedUsers = async ({ page = 1, limit = 20, keyword = "" } = {}) => {
     }
     let totalCount;
     let results = [];
-    if (mongoIsConnected) {
-      totalCount = await user.countDocuments(searchQuery);
-      results = await user.find(searchQuery).skip(skip).limit(limit);
-    } else {
-      const [countResults] = await pool.query(
-        "SELECT COUNT(*) as count FROM Users WHERE name LIKE ? OR email LIKE ?",
-        [`%${keyword}%`, `%${keyword}%`]
-      );
-      totalCount = countResults[0].count;
 
-      [results] = await pool.query(
-        "SELECT * FROM Users WHERE name LIKE ? OR email LIKE ? LIMIT ? OFFSET ?",
-        [`%${keyword}%`, `%${keyword}%`, limit, skip]
-      );
-    }
+    totalCount = await User.countDocuments(searchQuery);
+    results = await User.find(searchQuery).skip(skip).limit(limit);
 
     const totalPages = Math.ceil(totalCount / limit);
 
@@ -199,35 +150,20 @@ const getDeletedUsers = async ({ page = 1, limit = 20, keyword = "" } = {}) => {
       data: results,
     };
   } catch (err) {
-    console.log(err);
     throw err;
   }
 };
 
 const restoreUser = async (id) => {
   try {
-    if (mongoIsConnected) {
-      const foundUser = await user.findById(id);
-      if (!user) {
-        return null;
-      }
-      await foundUser.restore();
-      foundUser.affectedRows = 1;
-      return foundUser;
-    }
-
-    const [result] = await pool.query(
-      "UPDATE Users SET deleted = false WHERE id = ?",
-      [id]
-    );
-
-    if (!result?.affectedRows) {
+    const foundUser = await User.findById(id);
+    if (!foundUser) {
       return null;
     }
-
-    return result;
+    await foundUser.restore();
+    foundUser.affectedRows = 1;
+    return foundUser;
   } catch (err) {
-    console.log(err);
     throw err;
   }
 };

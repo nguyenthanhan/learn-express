@@ -16,7 +16,7 @@ import {
 const router = express.Router();
 
 router.use((req, res, next) => {
-  console.log("Api Router", new Date());
+  // console.log("Api Router", new Date());
   next();
 });
 

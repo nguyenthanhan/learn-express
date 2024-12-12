@@ -44,8 +44,28 @@ const startServer = async () => {
     );
 
     app.use(cors());
-    app.use(express.json()); // Add this line to parse JSON request bodies
-    app.use(express.urlencoded({ extended: true })); // Add this line to parse URL-encoded request bodies
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+
+    const logAfterApiCall = (req, res, next) => {
+      const start = Date.now();
+
+      // Add request timestamp
+      req.requestTime = new Date().toISOString();
+
+      // Override end to calculate duration
+      const originalEnd = res.end;
+      res.end = function () {
+        const duration = Date.now() - start;
+        console.log(
+          `[${req.requestTime}] ${req.method} ${req.originalUrl} - Status: ${res.statusCode} - Duration: ${duration}ms`
+        );
+        originalEnd.apply(res, arguments);
+      };
+
+      next();
+    };
+    app.use(logAfterApiCall);
 
     app.use("/", WebRouters);
     app.use(`/api/${apiVersion}`, ApiRoutes);

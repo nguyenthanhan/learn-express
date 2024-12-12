@@ -12,7 +12,7 @@ import {
 const router = express.Router();
 
 router.use((req, res, next) => {
-  console.log("Web router", new Date());
+  // console.log("Web router", new Date());
   next();
 });
 

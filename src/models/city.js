@@ -21,6 +21,4 @@ citySchema.set("toJSON", {
 
 const City = mongoose.model("City", citySchema);
 
-export { citySchema };
-
 export default City;

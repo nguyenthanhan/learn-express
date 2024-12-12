@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { citySchema } from "./city.js";
 
 const { Schema } = mongoose;
 
@@ -7,7 +6,10 @@ const userSchema = new Schema(
   {
     name: String,
     email: String,
-    city: citySchema,
+    city: {
+      type: Schema.Types.ObjectId,
+      ref: "City",
+    },
     role: { type: String, default: "user" },
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
