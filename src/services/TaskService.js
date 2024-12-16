@@ -96,6 +96,21 @@ export const createTask = async ({
       endDate,
     });
     const result = await task.save();
+
+    const updatedProject = await Project.findOneAndUpdate(
+      {
+        _id: projectId,
+      },
+      {
+        $push: {
+          tasks: result._id,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
     return result;
   } catch (err) {
     throw err;

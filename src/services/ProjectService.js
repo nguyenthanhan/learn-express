@@ -32,6 +32,8 @@ export const getProjects = async ({
     results = await Project.find(searchQuery)
       .skip(skip)
       .limit(limit)
+      .populate("tasks")
+      .populate("members")
       .sort({ [_sortBy]: -1 });
 
     const totalPages = Math.ceil(totalCount / limit);
