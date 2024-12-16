@@ -15,10 +15,7 @@ const getAllUsers = async ({ page = 1, limit = 20, keyword = "" } = {}) => {
     let results = [];
 
     totalCount = await User.countDocuments(searchQuery);
-    results = await User.find(searchQuery)
-      .skip(skip)
-      .limit(limit)
-      .populate("city");
+    results = await User.find(searchQuery).skip(skip).limit(limit);
 
     const totalPages = Math.ceil(totalCount / limit);
 
@@ -36,7 +33,7 @@ const getAllUsers = async ({ page = 1, limit = 20, keyword = "" } = {}) => {
 
 const getUserById = async (id) => {
   try {
-    let result = await User.findOne({ _id: id, deleted: false }).populate(city);
+    let result = await User.findOne({ _id: id, deleted: false });
     return result;
   } catch (err) {
     throw err;

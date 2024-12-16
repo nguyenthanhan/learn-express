@@ -4,10 +4,10 @@ const { Schema } = mongoose;
 const customerSchema = new Schema(
   {
     name: { type: String, required: true },
-    address: { type: String, required: true },
+    address: { type: String, required: false },
     email: { type: String, required: true },
-    image: string,
-    description: { type: String, required: true },
+    image: { type: String, required: false },
+    description: { type: String, required: false },
   },
   { timestamps: true }
 );

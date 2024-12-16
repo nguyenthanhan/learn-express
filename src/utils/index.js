@@ -20,7 +20,7 @@ export const responseFormatter = ({
   };
 };
 
-export const returnResponse = (data, meta, message) => {
+export const createResponseSuccess = (data, meta, message) => {
   return responseFormatter({
     success: true,
     message,
@@ -29,7 +29,7 @@ export const returnResponse = (data, meta, message) => {
   });
 };
 
-export const returnError = (message, code) => {
+export const createResponseError = (message, code) => {
   return responseFormatter({
     success: false,
     errorMessage: message || "Internal server error",
