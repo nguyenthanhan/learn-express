@@ -1,6 +1,11 @@
 import User from "../models/User.js";
 
-const getAllUsers = async ({ page = 1, limit = 20, keyword = "" } = {}) => {
+const getAllUsers = async ({
+  page = 1,
+  limit = 20,
+  keyword = "",
+  sortBy = "name",
+} = {}) => {
   try {
     const skip = (page - 1) * limit;
     let searchQuery = { deleted: false };
@@ -13,9 +18,15 @@ const getAllUsers = async ({ page = 1, limit = 20, keyword = "" } = {}) => {
     }
     let totalCount;
     let results = [];
+    const _sortBy = ["name", "email", "createdAt"].includes(sortBy)
+      ? sortBy
+      : "name";
 
     totalCount = await User.countDocuments(searchQuery);
-    results = await User.find(searchQuery).skip(skip).limit(limit);
+    results = await User.find(searchQuery)
+      .skip(skip)
+      .limit(limit)
+      .sort({ [_sortBy]: -1 });
 
     const totalPages = Math.ceil(totalCount / limit);
 
@@ -89,7 +100,7 @@ const deleteUser = async (id) => {
     if (!foundUser) {
       return null;
     }
-    await foundUser.softDelete({ deleteBy: 1 });
+    await foundUser.softDelete({ deleteBy: foundUser.id });
     foundUser.affectedRows = 1;
     return foundUser;
   } catch (err) {

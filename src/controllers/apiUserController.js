@@ -15,6 +15,7 @@ const getUsersApi = async (req, res) => {
       page: Number(req.query.page) || 1,
       limit: Number(req.query.limit) || 20,
       keyword: req.query.keyword || "",
+      sortBy: req.query.sortBy || "name",
     };
     const results = await getAllUsers(payloads);
     const { data, ...remain } = results;
@@ -138,6 +139,7 @@ const getDeletedUsersApi = async (req, res) => {
       page: Number(req.query.page) || 1,
       limit: Number(req.query.limit) || 20,
       keyword: req.query.keyword || "",
+      sortBy: req.query.sortBy || "name",
     };
 
     const results = await getDeletedUsers(payloads);

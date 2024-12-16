@@ -12,7 +12,7 @@ const projectSchema = new Schema(
     endDate: Date,
     status: { type: String, default: "active" },
     customer: customerSchema,
-    user: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    members: [{ type: Schema.Types.ObjectId, ref: "User" }],
     leader: userSchema,
     tasks: [{ type: Schema.Types.ObjectId, ref: "Task" }],
   },
