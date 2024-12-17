@@ -1,5 +1,6 @@
 import { createProject, getProjects } from "../services/ProjectService.js";
 import { createResponseSuccess, createResponseError } from "../utils/index.js";
+import { validateProjectSchema } from "../models/Project.js";
 
 export const getProjectsApi = async (req, res) => {
   try {
@@ -29,6 +30,18 @@ export const createProjectApi = async (req, res) => {
     customer,
     leader,
   } = req.body || {};
+
+  const { error } = validateProjectSchema.validate(req.body, {
+    abortEarly: false,
+  });
+
+  if (error?.details?.length > 0) {
+    return res
+      .status(400)
+      .json(
+        createResponseError(error.details.map((d) => d.message).join(", "), 400)
+      );
+  }
 
   if (
     !type ||
