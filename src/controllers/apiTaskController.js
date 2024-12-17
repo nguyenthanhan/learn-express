@@ -48,6 +48,10 @@ export const createTaskApi = async (req, res) => {
       endDate,
     });
 
+    if (result?.code) {
+      return res.status(400).json(createResponseError(result?.message, 400));
+    }
+
     res
       .status(201)
       .json(
