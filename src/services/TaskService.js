@@ -8,6 +8,7 @@ export const getTasks = async ({
   keyword = "",
   sortBy = "name",
   projectId,
+  status,
 } = {}) => {
   try {
     const skip = (page - 1) * limit;
@@ -24,7 +25,9 @@ export const getTasks = async ({
       searchQuery["project._id"] = projectId;
     }
 
-    searchQuery["status"] = "process";
+    if (status) {
+      searchQuery["status"] = status;
+    }
 
     let totalCount;
     let results = [];
